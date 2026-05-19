@@ -116,10 +116,17 @@
       let count = 0;
       let target = 100;
       let audioContext;
+      const BELL_SETTINGS = {
+        frequencyHz: 880,
+        startGain: 0.001,
+        peakGain: 0.25,
+        attackSeconds: 0.02,
+        releaseSeconds: 0.3
+      };
 
       function sanitizeTarget(value) {
-        const parsed = Number.parseInt(value, 10);
-        return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+        const parsed = Number(value);
+        return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 1;
       }
 
       function getAudioContext() {
@@ -150,16 +157,22 @@
         const gain = context.createGain();
 
         osc.type = 'sine';
-        osc.frequency.value = 880;
-        gain.gain.setValueAtTime(0.001, context.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.25, context.currentTime + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.3);
+        osc.frequency.value = BELL_SETTINGS.frequencyHz;
+        gain.gain.setValueAtTime(BELL_SETTINGS.startGain, context.currentTime);
+        gain.gain.exponentialRampToValueAtTime(
+          BELL_SETTINGS.peakGain,
+          context.currentTime + BELL_SETTINGS.attackSeconds
+        );
+        gain.gain.exponentialRampToValueAtTime(
+          BELL_SETTINGS.startGain,
+          context.currentTime + BELL_SETTINGS.releaseSeconds
+        );
 
         osc.connect(gain);
         gain.connect(context.destination);
 
         osc.start();
-        osc.stop(context.currentTime + 0.3);
+        osc.stop(context.currentTime + BELL_SETTINGS.releaseSeconds);
       }
 
       function updateStatus() {
