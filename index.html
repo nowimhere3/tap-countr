@@ -103,7 +103,7 @@
 
       <button id="tap-button" type="button">Tap anywhere here</button>
       <button id="reset-button" type="button">Reset</button>
-      <p id="status" aria-live="polite">Tap to start. Target is 100.</p>
+      <p id="status" aria-live="polite">Tap to start.</p>
     </main>
 
     <script>
@@ -115,19 +115,37 @@
 
       let count = 0;
       let target = 100;
+      let audioContext;
 
       function sanitizeTarget(value) {
         const parsed = Number.parseInt(value, 10);
         return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
       }
 
-      function ringBell() {
+      function getAudioContext() {
+        if (audioContext) {
+          return audioContext;
+        }
+
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) {
+          return null;
+        }
+
+        audioContext = new AudioContext();
+        return audioContext;
+      }
+
+      function ringBell() {
+        const context = getAudioContext();
+        if (!context) {
           return;
         }
 
-        const context = new AudioContext();
+        if (context.state === 'suspended') {
+          context.resume().catch(() => {});
+        }
+
         const osc = context.createOscillator();
         const gain = context.createGain();
 
@@ -142,10 +160,6 @@
 
         osc.start();
         osc.stop(context.currentTime + 0.3);
-
-        osc.onended = () => {
-          context.close();
-        };
       }
 
       function updateStatus() {
