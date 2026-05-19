@@ -9,4 +9,4 @@ Simple static tap counter app for GitHub Pages.
 - Reset button to start over
 
 ## Run locally
-Open `/home/runner/work/tap-countr/tap-countr/index.html` in a browser.
+Open `index.html` in a browser (from the repository root).
